@@ -1,0 +1,11 @@
+- folder_name: 0 - Linux Sessions
+  sessions:
+  - DeviceType: Linux
+    Model: ''
+    SerialNumber: ''
+    SoftwareVersion: ''
+    Vendor: Ubuntu
+    credsid: '1'
+    display_name: Sample Linux Host
+    host: 10.0.0.108
+    port: '22'

@@ -1,0 +1,4 @@
+include requirements.txt
+include LICENSE
+recursive-include pyretroterm/static *
+recursive-include pyretroterm/templates *

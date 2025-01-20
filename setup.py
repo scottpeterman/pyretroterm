@@ -7,7 +7,7 @@ with open("requirements.txt") as f:
 
 setup(
     name="pyRetroTerm",
-    version="0.1.1",
+    version="0.1.2",
     author="Scott Peterman",
     author_email="scottpeterman@gmail.com",
     description="pyRetroTerm - A PyQt6 Terminal Emulator with Retro themes",
@@ -15,10 +15,9 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/scottpeterman/pyretroterm",
     project_urls={
-        "Bug Tracker": "https://github.com/scottpeterman/pyretroterm/issues",
-        "Documentation": "https://github.com/scottpeterman/pyretroterm/wiki"
+
     },
-    keywords="terminal, telemetry, ssh, network, automation, pyqt6",
+    keywords="terminal, ssh, network, automation, pyqt6",
     packages=find_packages(),
     include_package_data=True,
     package_data={

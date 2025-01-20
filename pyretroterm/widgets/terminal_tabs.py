@@ -153,7 +153,7 @@ class TerminalTabWidget(QTabWidget):
     def apply_theme_to_terminal(self, terminal, terminal_theme):
         """Apply theme to a specific terminal instance."""
         if hasattr(terminal, 'view'):
-            theme_data = terminal_themes.get(THEME_MAPPING[terminal_theme], terminal_themes["Cyberpunk"])
+            theme_data = terminal_themes.get(THEME_MAPPING[self.parent.theme], terminal_themes["Cyberpunk"])
             if theme_data and "js" in theme_data:
                 # Check if terminal is ready before applying theme
                 terminal.view.page().runJavaScript(

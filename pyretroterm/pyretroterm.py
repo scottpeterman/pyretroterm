@@ -31,7 +31,7 @@ from pyretroterm.widgets.terminal_tabs import TerminalTabWidget
 # Configure logging
 logging.basicConfig(level=logging.INFO,
                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger('termtel')
+logger = logging.getLogger('pyretroterm')
 
 
 def initialize_sessions():
@@ -74,7 +74,7 @@ class FastAPIServer(QThread):
         pass
 
 
-class TermtelWindow(QMainWindow):
+class pyRetroTermWindow(QMainWindow):
     credentials_unlocked = pyqtSignal()
 
     def __init__(self, theme: str = "cyberpunk", session_file: str = "sessions.yaml"):
@@ -375,7 +375,7 @@ class TermtelWindow(QMainWindow):
         mapped_theme = THEME_MAPPING.get(theme_name, "Cyberpunk")  # Default to Cyberpunk if no mapping
         self.terminal_tabs.update_theme(mapped_theme)
 
-        self.telemetry.change_theme(theme_name)
+
         # Update the application palette based on theme
         if theme_name in ['light_mode']:
             self.apply_light_palette()
@@ -477,10 +477,10 @@ class TermtelWindow(QMainWindow):
 
 def setup_logging():
     """Configure logging to write to a file instead of stdout."""
-    log_dir = Path.home() / "./TerminalTelemetry" / "logs"
+    log_dir = Path.home() / "./pyretroterm" / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
 
-    log_file = log_dir / "termtel.log"
+    log_file = log_dir / "pyretroterm.log"
     logging.basicConfig(
         filename=str(log_file),
         level=logging.INFO,
@@ -500,7 +500,7 @@ def redirect_output():
 
 
 def main():
-    """TerminalTelemetry - A modern terminal emulator."""
+    """pyRetroTerm - A modern terminal emulator."""
     # Set up logging before anything else
     setup_logging()
 
@@ -510,7 +510,7 @@ def main():
     try:
         initialize_sessions()
         app = QApplication(sys.argv)
-        app.setApplicationName("TerminalTelemetry")
+        app.setApplicationName("pyRetroTerm")
 
         theme = "cyberpunk"
         # Create theme manager instance
@@ -521,7 +521,7 @@ def main():
             logging.warning(f"Theme '{theme}' not found, using 'cyberpunk'")
             theme = 'cyberpunk'
 
-        window = TermtelWindow(theme=theme)
+        window = pyRetroTermWindow(theme=theme)
         window.show()
 
         return app.exec()

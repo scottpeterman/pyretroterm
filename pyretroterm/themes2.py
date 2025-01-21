@@ -122,15 +122,16 @@ class ThemeLibrary:
                 corner_bright="#ffffff",  # Bright white corners
             ),
             # Update the light mode colors in ThemeLibrary
-"light_mode": ThemeColors(
+   "light_mode": ThemeColors(
     primary="#f0f0f0",      # Light gray for primary UI elements
     secondary="#ffffff",     # Pure white
     background="#ffffff",    # Pure white background
     darker_bg="#f5f5f5",    # Very light gray
+    lighter_bg="#e0e0e0",   # Slightly darker gray for contrast
     text="#000000",         # Pure black for maximum contrast
     grid="#d6d6d6",        # Subtle grid lines
     line="#1976d2",        # Blue for active lines
-    button_hover="#0d0d0d", # Slightly darker hover effect
+    button_hover="#e8e8e8", # Light gray hover effect
     button_pressed="#d0d0d0", # Pressed button state
     border="#c0c0c0",      # Medium gray border
     success="#4caf50",     # Green for success
@@ -139,12 +140,10 @@ class ThemeLibrary:
     corner_gap="#ffffff",   # Match the background
     panel_bg="rgba(255, 255, 255, 0.98)", # Nearly opaque white
     scrollbar_bg="rgba(0, 0, 0, 0.1)",    # Light gray scrollbar
-    selected_bg="rgba(25, 118, 210, 0.1)", # Light blue selection
+    selected_bg="rgba(25, 118, 210, 0.2)", # Slightly darker blue selection for better contrast
     chart_bg="rgba(0, 0, 0, 0.05)",        # Very subtle chart background
     corner_bright="#000000", # Black corners
-    lighter_bg="#ffffff"     # Pure white
-
-            ),
+),
             "retro_green": ThemeColors(
                 primary="#0d3b0d",  # Dark green primary
                 secondary="#041504",  # Darker green secondary
@@ -255,15 +254,15 @@ class ThemeLibrary:
         }}
         QMenuBar::item:selected {{
             background-color: {theme.lighter_bg};
-            color: {theme.background};
+            color: {theme.corner_bright};
         }}
         
             QMenuBar::item:hover {{
-            background-color: {theme.selected_bg};
-            color: {theme.text};
+            background-color: {theme.background};
+            color: {theme.corner_bright};
         }}
          QMenu::item:hover {{
-            background-color: {theme.selected_bg};
+            background-color: {theme.button_hover};
             color: {theme.text};
         }}
         QMenu {{
@@ -1185,42 +1184,64 @@ terminal_themes = {
         """
     },
     "Light": {
-        "js": """
-        term.setOption('theme', {
-            foreground: '#000000',
-            background: '#ffffff',
-            cursor: '#000000'
-        });
+    "js": """
+    term.setOption('theme', {
+        foreground: '#000000',         // Black text
+        background: '#ffffff',         // White background
+        cursor: '#000000',            // Black cursor
+        // Add specific colors for other terminal elements
+        selection: '#b3d4fc',         // Light blue selection
+        black: '#000000',
+        red: '#cc0000',
+        green: '#4caf50',
+        yellow: '#f6b100',
+        blue: '#1976d2',
+        magenta: '#ba68c8',
+        cyan: '#00acc1',
+        white: '#ffffff',
+        brightBlack: '#666666',
+        brightRed: '#f44336',
+        brightGreen: '#00c853',
+        brightYellow: '#ffd600',
+        brightBlue: '#2196f3',
+        brightMagenta: '#e040fb',
+        brightCyan: '#00bcd4',
+        brightWhite: '#ffffff'
+    });
 
-        if (!window.themeStyle) {
-            window.themeStyle = document.createElement('style');
-            window.themeStyle.id = 'theme-scrollbar-style';
-            document.head.appendChild(window.themeStyle);
+    if (!window.themeStyle) {
+        window.themeStyle = document.createElement('style');
+        window.themeStyle.id = 'theme-scrollbar-style';
+        document.head.appendChild(window.themeStyle);
+    }
+
+    window.themeStyle.innerHTML = `
+        body {
+            background-color: #ffffff;
+            margin: 0;
+            padding: 0;
         }
+        .xterm-viewport::-webkit-scrollbar {
+            width: 12px;
+        }
+        .xterm-viewport::-webkit-scrollbar-track {
+            background: #f5f5f5;
+        }
+        .xterm-viewport::-webkit-scrollbar-thumb {
+            background: #999;
+            border-radius: 6px;
+        }
+        .xterm-viewport::-webkit-scrollbar-thumb:hover {
+            background: #666;
+        }
+        .xterm-viewport {
+            background-color: #ffffff !important;
+        }
+    `;
 
-        window.themeStyle.innerHTML = `
-            body {
-                background-color: #ffffff;
-                margin: 0;
-                padding: 0;
-            }
-            .xterm-viewport::-webkit-scrollbar {
-                width: 12px;
-            }
-            .xterm-viewport::-webkit-scrollbar-track {
-                background: #ffffff;
-            }
-            .xterm-viewport::-webkit-scrollbar-thumb {
-                background: #888;
-            }
-            .xterm-viewport::-webkit-scrollbar-thumb:hover {
-                background: #666;
-            }
-        `;
-
-        fitAddon.fit();
-        """
-    },
+    fitAddon.fit();
+    """
+},
     "Green": {
         "js": """
         term.setOption('theme', {

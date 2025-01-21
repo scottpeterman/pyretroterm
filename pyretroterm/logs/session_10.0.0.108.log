@@ -1,0 +1,38 @@
+Welcome to Ubuntu 22.04.2 LTS (GNU/Linux 6.5.0-44-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+2 devices have a firmware upgrade available.
+Run `fwupdmgr get-upgrades` for more information.
+
+
+ * Introducing Expanded Security Maintenance for Applications.
+   Receive updates to over 25,000 software packages with your
+   Ubuntu Pro subscription. Free for personal use.
+
+     https://ubuntu.com/pro
+
+Expanded Security Maintenance for Applications is not enabled.
+
+191 updates can be applied immediately.
+To see these additional updates run: apt list --upgradable
+
+29 additional security updates can be applied with ESM Apps.
+Learn more about enabling ESM Apps service at https://ubuntu.com/esm
+
+
+The list of available updates is more than a week old.
+To check for new updates run: sudo apt update
+New release '24.04.1 LTS' available.
+Run 'do-release-upgrade' to upgrade to it.
+
+
+2 devices have a firmware upgrade available.
+Run `fwupdmgr get-upgrades` for more information.
+
+Last login: Mon Jan 20 05:35:44 2025 from 10.0.0.149
+
+[?2004h]0;speterman@ThinkStation: ~speterman@ThinkStation:~$ 
+[K]0;speterman@ThinkStation: ~speterman@ThinkStation:~$ 

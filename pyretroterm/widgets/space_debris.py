@@ -23,7 +23,12 @@ class AsteroidsWidget(QWidget):
 
     def __init__(self, color=Qt.GlobalColor.white, parent=None):
         super().__init__(parent)
-        self.game_color = color
+
+        if "light" not in parent.theme:
+            self.game_color = color
+        else:
+            self.game_color = Qt.GlobalColor.white
+        self.parent=parent
         self.initUI()
 
     def initUI(self):

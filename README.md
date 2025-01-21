@@ -1,20 +1,19 @@
 # pyRetroTerm
 
 A modern terminal emulator built with PyQt6, featuring retro-themed visuals and advanced terminal capabilities.
-![Screenshot](https://raw.githubusercontent.com/scottpeterman/pyretroterm/main/screenshots/amber_screen.png)
+![Screenshot](https://raw.githubusercontent.com/scottpeterman/pyretroterm/main/screenshots/slides1.gif)
 ![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
 
 ## Features
 
-- 🎨 Retro-themed UI with customizable themes (including Cyberpunk default theme)
-- 📑 Multi-tabbed terminal interface
-- 🔒 Secure credential management
-- 📁 Portable session management with YAML configuration
-- 🖥️ Split-pane interface with adjustable layouts
-- 🌓 Light and dark mode support
-- 🔌 SSH connectivity
-- 📊 Built-in telemetry support
+-  Retro-themed UI with customizable themes (CRT Green and Amber, Dark/Light etc)
+-  Multi-tabbed terminal interface
+-  Secure encrypted credential management
+-  Portable session management with YAML configuration
+- ️ Split-pane interface with adjustable layouts
+-  SSH connectivity with full terminal emulation
+-  Netbox integration, export netbox devices into a local sessions YAML file
 
 ## Installation
 
@@ -22,6 +21,7 @@ A modern terminal emulator built with PyQt6, featuring retro-themed visuals and 
 
 ```bash
 pip install pyretroterm
+pyretroterm
 ```
 
 ### From source
@@ -30,7 +30,7 @@ pip install pyretroterm
 git clone https://github.com/scottpeterman/pyretroterm.git
 cd pyretroterm
 pip install -r requirements.txt
-python setup.py install
+python -m pyretroterm.pyretroterm
 ```
 
 ## Quick Start
@@ -78,7 +78,7 @@ pyRetroTerm comes with several built-in themes:
 - Dark Mode
 - Additional retro themes - green and amber
 
-Themes can be switched via the View menu or keyboard shortcuts.
+Themes can be switched via the View menu.
 
 ## Requirements
 
@@ -92,26 +92,6 @@ Themes can be switched via the View menu or keyboard shortcuts.
 - Master password protection
 - Secure session management
 
-## Development
-
-### Building from Source
-
-```bash
-git clone https://github.com/scottpeterman/pyretroterm.git
-cd pyretroterm
-pip install -r requirements.txt
-```
-
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
 
 ## License
 

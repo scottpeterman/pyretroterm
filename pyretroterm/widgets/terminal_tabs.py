@@ -331,7 +331,7 @@ class TerminalTabWidget(QTabWidget):
             game_color = QColor(text_color)
 
             # Create game widget with the color
-            game = AsteroidsWidget(color=game_color)
+            game = AsteroidsWidget(color=game_color, parent=self.parent)
 
             # Create wrapper and container
             wrapper = GameWrapper(game)

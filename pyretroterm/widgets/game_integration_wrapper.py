@@ -32,7 +32,7 @@ def create_game_tab(self, title: str = "Asteroids") -> str:
         from pyretroterm.widgets.space_debris import AsteroidsWidget
         theme_colors = self.parent.theme_manager.get_colors(self.parent.theme)
         game_color = theme_colors.get('text', Qt.GlobalColor.white)
-        game = AsteroidsWidget(color=game_color)
+        game = AsteroidsWidget(color=game_color,parent=self.parent)
 
         # Create wrapper and container
         wrapper = GameWrapper(game)

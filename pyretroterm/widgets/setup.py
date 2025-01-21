@@ -14,6 +14,7 @@ import logging
 import os
 
 from pyretroterm.widgets.credential_manager import CredentialManagerDialog
+from pyretroterm.widgets.lmtosession import LMDownloader
 from pyretroterm.widgets.nbtosession import App as NetboxExporter
 
 logger = logging.getLogger('pyretroterm.setup')
@@ -234,18 +235,15 @@ def setup_menus(window):
     credentials_action = view_menu.addAction("&Credentials")
     credentials_action.triggered.connect(lambda: show_credentials_dialog(window))
 
-    # Replace telemetry dialog with simple toggle
-    # telemetry_action = view_menu.addAction("Show &Telemetry")
-    # telemetry_action.setCheckable(True)
-    # saved_state = window.settings_manager.get_view_setting('telemetry_visible', True)
-    # telemetry_action.setChecked(saved_state)
-    # telemetry_action.triggered.connect(lambda: toggle_telemetry(window, telemetry_action))
+
 
     # Tools Menu
     tools_menu = menubar.addMenu("&Tools")
 
     netbox_action = tools_menu.addAction("&Netbox Import")
     netbox_action.triggered.connect(lambda: show_netbox_importer(window))
+    lm_action = tools_menu.addAction("&LogicMonitor Import")
+    lm_action.triggered.connect(lambda: show_logicmonitor_importer(window))
     manage_sessions_action = tools_menu.addAction('Manage Sessions')
     manage_sessions_action.triggered.connect(lambda: show_session_manager(window))
 
@@ -348,3 +346,12 @@ def show_about_dialog(window):
         dialog.exec()
     except Exception as e:
         logger.error(f"Error showing about dialog: {e}")
+
+def show_logicmonitor_importer(window):
+    """Show the LogicMonitor to Session importer"""
+    try:
+        window.lmdialog = LMDownloader(window)
+        window.lmdialog.setWindowModality(Qt.WindowModality.ApplicationModal)
+        window.lmdialog.show()
+    except Exception as e:
+        logger.error(f"Error showing LogicMonitor importer: {e}")

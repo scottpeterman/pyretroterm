@@ -14,6 +14,7 @@ A modern terminal emulator built with PyQt6, featuring retro-themed visuals and 
 - ️ Split-pane interface with adjustable layouts
 -  SSH connectivity with full terminal emulation
 -  Netbox integration, export netbox devices into a local sessions YAML file
+-  Logicmonitor integration, export monitored devices into a local sessions YAML file
 
 ## Installation
 

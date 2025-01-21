@@ -1,11 +1,12 @@
-- folder_name: 0 - Linux Sessions
+- folder_name: Example
   sessions:
-  - DeviceType: Linux
-    Model: ''
+  - DeviceType: linux
+    Model: Thinkstation 
     SerialNumber: ''
     SoftwareVersion: ''
-    Vendor: Ubuntu
+    Vendor: Lenovo
     credsid: '1'
-    display_name: Sample Linux Host
-    host: 10.0.0.108
+    display_name: T1000
+    host: 10.0.0.104
     port: '22'
+    

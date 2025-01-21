@@ -448,12 +448,16 @@ class ThemeLibrary:
             }}
 
             QTabBar::tab:selected {{
-                background-color: {theme.primary};
-                color: {theme.darker_bg};
+                background-color: {theme.button_hover};
+                border: 1px solid {theme.text};
+                border-bottom: none;
+                color: {theme.text};
             }}
 
             QTabBar::tab:hover {{
                 background-color: {theme.button_hover};
+                border: 1px solid {theme.text};
+                border-bottom: none;
             }}
 
             QScrollBar:vertical {{

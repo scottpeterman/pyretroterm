@@ -39,7 +39,7 @@ class AboutDialog(QDialog):
             bg_color = theme_colors['background']
             text_color = theme_colors['text']
             highlight_color = theme_colors['primary']
-            secondary_color = theme_colors['secondary']
+            secondary_color = theme_colors['border']
             border_color = theme_colors['border']
         else:
             bg_color = "#1e1e1e"
@@ -65,7 +65,7 @@ class AboutDialog(QDialog):
                     margin: 0 auto;
                 }}
                 h1 {{
-                    color: {highlight_color};
+                    color: {text_color};
                     text-align: center;
                     font-size: 2.5em;
                     margin-bottom: 10px;
@@ -80,7 +80,7 @@ class AboutDialog(QDialog):
                     font-size: 1.2em;
                 }}
                 .subtitle {{
-                    color: {secondary_color};
+                    color: {highlight_color};
                     text-align: center;
                     font-size: 1.1em;
                     margin-bottom: 30px;
@@ -101,7 +101,7 @@ class AboutDialog(QDialog):
                     left: 0;
                 }}
                 .highlight {{
-                    color: {highlight_color};
+                    color: {text_color};
                 }}
                 .footer {{
                     margin-top: 40px;
@@ -127,15 +127,7 @@ class AboutDialog(QDialog):
                         <li>Secure credential storage</li>
                     </ul>
 
-                    <h3>Network Device Telemetry</h3>
-                    <ul>
-                        <li>Real-time interface utilization monitoring with graphs</li>
-                        <li>Automatic device type detection</li>
-                        <li>LLDP/CDP neighbor discovery</li>
-                        <li>ARP table visualization</li>
-                        <li>Routing table analysis with prefix lookup</li>
-                        <li>Support for multiple network operating systems (Cisco IOS, Arista EOS, Cisco NXOS)</li>
-                    </ul>
+                    
 
                     <h3>Security Features</h3>
                     <ul>
@@ -256,6 +248,23 @@ def setup_menus(window):
     netbox_action.triggered.connect(lambda: show_netbox_importer(window))
     manage_sessions_action = tools_menu.addAction('Manage Sessions')
     manage_sessions_action.triggered.connect(lambda: show_session_manager(window))
+
+    # Add separator before distractions menu
+    tools_menu.addSeparator()
+
+    # Add Distractions submenu
+    distractions_menu = tools_menu.addMenu("Distractions")
+    distractions_menu.setObjectName("menu_distractions")
+
+    # Add Notepad action
+    notepad_action = distractions_menu.addAction("Notepad")
+    notepad_action.triggered.connect(
+        lambda: window.terminal_tabs.create_text_editor_tab("Notepad")
+    )
+    space_debris = distractions_menu.addAction("Space Debris")
+    space_debris.triggered.connect(
+        lambda: window.terminal_tabs.create_game_tab("Space Debris")
+    )
 
     # Help Menu
     help_menu = menubar.addMenu("&Help")

@@ -7,7 +7,7 @@ with open("requirements.txt") as f:
 
 setup(
     name="pyRetroTerm",
-    version="0.1.2",
+    version="0.1.3",
     author="Scott Peterman",
     author_email="scottpeterman@gmail.com",
     description="pyRetroTerm - A PyQt6 Terminal Emulator with Retro themes",

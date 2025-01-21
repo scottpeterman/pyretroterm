@@ -1,6 +1,8 @@
 # widgets/terminal_tabs.py
 import socket
+import traceback
 
+from PyQt6.QtGui import QColor
 from PyQt6.QtWebEngineCore import QWebEngineProfile
 from PyQt6.QtWidgets import (QTabWidget, QWidget, QVBoxLayout,
                              QMenu, QMessageBox, QSplitter)
@@ -10,7 +12,9 @@ import logging
 from typing import Dict, Optional, Tuple
 
 from pyretroterm.themes2 import terminal_themes
+from pyretroterm.widgets.notepad_widget import NotepadWidget
 from pyretroterm.widgets.qtssh_widget import Ui_Terminal
+from pyretroterm.widgets.terminal_app_wrapper import TextEditorWrapper, GenericTabContainer
 
 logger = logging.getLogger(__name__)
 THEME_MAPPING = {
@@ -22,6 +26,21 @@ THEME_MAPPING = {
     "neon_blue": "Neon"
 }
 
+
+class GameWrapper:
+    """Wrapper class to standardize game interface"""
+
+    def __init__(self, game_widget):
+        self.game = game_widget
+
+    def cleanup(self):
+        """Handle cleanup when tab is closed"""
+        if hasattr(self.game, 'cleanup'):
+            self.game.cleanup()
+        # Make sure to stop any running game loops
+        if hasattr(self.game, 'gameView'):
+            if hasattr(self.game.gameView, 'timer'):
+                self.game.gameView.timer.stop()
 class TerminalTabWidget(QTabWidget):
     """Widget managing multiple terminal tabs."""
     terminal_closed = pyqtSignal(str)  # Signal when a terminal is closed
@@ -197,38 +216,6 @@ class TerminalTabWidget(QTabWidget):
         except Exception as e:
             print(f"Error during terminal cleanup: {e}")
 
-    def close_tab(self, index: int):
-        """Handle tab close request."""
-        try:
-            widget = self.widget(index)
-            if widget:
-                # Find session ID for this widget
-                session_id = None
-                for sid, w in self.sessions.items():
-                    if w == widget:
-                        session_id = sid
-                        break
-
-                # Clean up and remove the tab
-                terminal = widget.findChild(Ui_Terminal)
-                if terminal:
-                    try:
-                        terminal.cleanup()
-                    except Exception as e:
-                        logger.warning(f"Terminal cleanup failed: {e}")
-
-                # Remove the tab first to prevent UI issues
-                self.removeTab(index)
-
-                # Delete the widget after cleanup
-                widget.deleteLater()
-
-                # Clean up session
-                if session_id:
-                    self.remove_session(session_id)
-
-        except Exception as e:
-            logger.error(f"Error closing tab: {e}")
     def remove_session(self, session_id: str):
         """Remove session from tracking."""
         if session_id in self.sessions:
@@ -300,3 +287,123 @@ class TerminalTabWidget(QTabWidget):
             self.sessions.clear()
         except Exception as e:
             logger.error(f"Error during cleanup: {e}")
+
+    def create_text_editor_tab(self, title: str = "Notepad") -> str:
+        """Create a new text editor tab"""
+        try:
+            # Generate unique ID for the tab
+            tab_id = str(uuid.uuid4())
+
+            # Create notepad widget
+            from pyretroterm.widgets.notepad_widget import NotepadWidget
+            editor = NotepadWidget()
+
+            # Create wrapper and container
+            wrapper = TextEditorWrapper(editor)
+            container = GenericTabContainer(editor, wrapper, self)
+
+            # Add to tab widget
+            index = self.addTab(container, title)
+            self.setCurrentIndex(index)
+
+            # Store in sessions
+            self.sessions[tab_id] = container
+            return tab_id
+
+        except Exception as e:
+            logger.error(f"Failed to create text editor: {e}")
+            raise
+
+    def create_game_tab(self, title: str = "Asteroids") -> str:
+        """Create a new game tab"""
+        try:
+            # Generate unique ID for the tab
+            tab_id = str(uuid.uuid4())
+
+            # Create game widget with appropriate theme color
+            from pyretroterm.widgets.space_debris import AsteroidsWidget
+
+            # Get theme colors using ThemeLibrary
+            theme_colors = self.parent.theme_manager.get_colors(self.parent.theme)
+            text_color = theme_colors.get('text', '#FFFFFF')
+
+            # Create QColor from hex string
+            game_color = QColor(text_color)
+
+            # Create game widget with the color
+            game = AsteroidsWidget(color=game_color)
+
+            # Create wrapper and container
+            wrapper = GameWrapper(game)
+            container = GenericTabContainer(game, wrapper, self)
+
+            # Add to tab widget
+            index = self.addTab(container, title)
+            self.setCurrentIndex(index)
+
+            # Store in sessions
+            self.sessions[tab_id] = container
+            return tab_id
+
+        except Exception as e:
+            logger.error(f"Failed to create game tab: {e}")
+            raise
+
+
+    def close_tab(self, index: int):
+        """Handle tab close request."""
+        try:
+            widget = self.widget(index)
+            if widget:
+                # Find session ID for this widget
+                session_id = None
+                for sid, w in self.sessions.items():
+                    if w == widget:
+                        session_id = sid
+                        break
+
+                # Check for unsaved changes if it's a notepad
+                notepad = widget.findChild(NotepadWidget)
+                if notepad and notepad.has_unsaved_changes:
+                    reply = QMessageBox.question(
+                        self,
+                        "Unsaved Changes",
+                        "This note has unsaved changes. Do you want to save before closing?",
+                        QMessageBox.StandardButton.Save |
+                        QMessageBox.StandardButton.Discard |
+                        QMessageBox.StandardButton.Cancel
+                    )
+
+                    if reply == QMessageBox.StandardButton.Save:
+                        notepad.save_content()
+                    elif reply == QMessageBox.StandardButton.Cancel:
+                        return
+
+                # Clean up and remove the tab
+                terminal = widget.findChild(Ui_Terminal)
+                if terminal:
+                    try:
+                        terminal.cleanup()
+                    except Exception as e:
+                        logger.warning(f"Terminal cleanup failed: {e}")
+
+                # Handle generic cleanup
+                if hasattr(widget, 'cleanup'):
+                    try:
+                        widget.cleanup()
+                    except Exception as e:
+                        logger.warning(f"Widget cleanup failed: {e}")
+
+                # Remove the tab first to prevent UI issues
+                self.removeTab(index)
+
+                # Delete the widget after cleanup
+                widget.deleteLater()
+
+                # Clean up session
+                if session_id:
+                    self.remove_session(session_id)
+
+        except Exception as e:
+            logger.error(f"Error closing tab: {e}")
+            raise

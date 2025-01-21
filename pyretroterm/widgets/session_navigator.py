@@ -202,6 +202,9 @@ class SessionNavigator(QWidget):
                 QLineEdit:focus {{
                     border: 1px solid {colors['text']};
                 }}
+                QLineEdit::placeholder {{
+                    color: {colors['border_light']};
+                }}
             """)
 
             # Style the session tree while preserving native arrows

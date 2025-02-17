@@ -83,7 +83,7 @@ class Ui_Terminal(QWidget):
         self.view.page().setWebChannel(self.channel)
         self.div_height = 0
         self.webview_size = self.view.size()
-
+        self.page = self.view.page()
         self.view.resizeEvent = self.handle_resize_event
         self.view.loadFinished.connect(self.handle_load_finished)
         self.backend.send_output.connect(

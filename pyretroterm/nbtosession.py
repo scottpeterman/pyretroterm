@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QLineEdit, QPushButton,
 import pynetbox
 import yaml
 import urllib3
-from pyretroterm.themes2 import LayeredHUDFrame
+from pyretroterm.themes3 import LayeredHUDFrame
 
 # Suppress only the single InsecureRequestWarning from urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)

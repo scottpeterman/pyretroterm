@@ -1,6 +1,7 @@
 # widgets/terminal_tabs.py
 import socket
 import traceback
+from importlib.resources import files
 
 from PyQt6.QtGui import QColor
 from PyQt6.QtWebEngineCore import QWebEngineProfile
@@ -12,19 +13,13 @@ import logging
 from typing import Dict, Optional, Tuple
 
 from pyretroterm.themes2 import terminal_themes
+from pyretroterm.themes3 import ThemeMapper, generate_terminal_themes
 from pyretroterm.widgets.notepad_widget import NotepadWidget
 from pyretroterm.widgets.qtssh_widget import Ui_Terminal
 from pyretroterm.widgets.terminal_app_wrapper import TextEditorWrapper, GenericTabContainer
 
 logger = logging.getLogger(__name__)
-THEME_MAPPING = {
-    "cyberpunk": "Cyberpunk",
-    "dark_mode": "Dark",
-    "light_mode": "Light",
-    "retro_green": "Green",
-    "retro_amber": "Amber",
-    "neon_blue": "Neon"
-}
+
 
 
 class GameWrapper:
@@ -54,8 +49,43 @@ class TerminalTabWidget(QTabWidget):
         self.current_term_theme = "Cyberpunk"  # Default
         if hasattr(self.parent, 'theme'):
             self.current_term_theme = self.parent.theme
+        self.terminal_themes = generate_terminal_themes(self.parent.theme_manager)
 
         self.setup_ui()
+
+    def create_doom_tab(self, title: str = "Doom") -> str:
+        try:
+            tab_id = str(uuid.uuid4())
+
+            from PyQt6.QtWebEngineWidgets import QWebEngineView
+            from PyQt6.QtWebEngineCore import QWebEngineSettings, QWebEngineProfile
+            from PyQt6.QtCore import QUrl
+
+            # Enable local file access
+            profile = QWebEngineProfile.defaultProfile()
+            settings = profile.settings()
+            settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, True)
+            settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
+
+            # Get absolute path to doom.html
+            # https://github.com/scottpeterman/pywasm3-doom-demo
+            doom_path = files('pyretroterm').joinpath('static/doom.html')
+
+            web_view = QWebEngineView()
+            web_view.setUrl(QUrl.fromLocalFile(str(doom_path)))
+
+            wrapper = DoomWrapper(web_view)
+            container = GenericTabContainer(web_view, wrapper, self)
+
+            index = self.addTab(container, title)
+            self.setCurrentIndex(index)
+
+            self.sessions[tab_id] = container
+            return tab_id
+
+        except Exception as e:
+            logger.error(f"Failed to create Doom tab: {e}")
+            raise
 
     def get_mapped_terminal_theme(self, pyqt_theme: str) -> str:
         """Map PyQt theme names to terminal theme names."""
@@ -169,16 +199,14 @@ class TerminalTabWidget(QTabWidget):
             logger.error(f"Failed to create terminal: {e}")
             raise
 
-    def apply_theme_to_terminal(self, terminal, terminal_theme):
+    def apply_theme_to_terminal(self, terminal, theme_name):
         """Apply theme to a specific terminal instance."""
-        if hasattr(terminal, 'view'):
-            theme_data = terminal_themes.get(THEME_MAPPING[self.parent.theme], terminal_themes["Cyberpunk"])
-            if theme_data and "js" in theme_data:
-                # Check if terminal is ready before applying theme
-                terminal.view.page().runJavaScript(
-                    "typeof term !== 'undefined' && term !== null",
-                    lambda result: self.handle_theme_check(result, terminal, theme_data["js"])
-                )
+        if hasattr(terminal, 'view') and theme_name in self.terminal_themes:
+            js_code = self.terminal_themes[theme_name]["js"]
+            terminal.view.page().runJavaScript(
+                "typeof term !== 'undefined' && term !== null",
+                lambda result: self.handle_theme_check(result, terminal, js_code)
+            )
 
     def handle_theme_check(self, is_ready: bool, terminal, theme_js: str):
         """Handle the terminal readiness check for theme application."""
@@ -262,6 +290,7 @@ class TerminalTabWidget(QTabWidget):
         """Change theme for current terminal and save preference."""
         self.current_term_theme = theme_name
         if hasattr(self, 'view'):
+            THEME_MAPPING = ThemeMapper(self.parent.theme_manager)
             QTimer.singleShot(3000, lambda: self.view.page().runJavaScript(
                 terminal_themes.get(THEME_MAPPING[self.current_term_theme], terminal_themes["Green"])["js"],
                 lambda result: print(f"{self.current_term_theme} theme applied")
@@ -407,3 +436,11 @@ class TerminalTabWidget(QTabWidget):
         except Exception as e:
             logger.error(f"Error closing tab: {e}")
             raise
+
+class DoomWrapper:
+    def __init__(self, doom_widget):
+        self.game = doom_widget
+
+    def cleanup(self):
+        if hasattr(self.game, 'cleanup'):
+            self.game.cleanup()

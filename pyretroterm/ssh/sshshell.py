@@ -121,9 +121,11 @@ class Backend(QObject):
             print("Error: Channel is not ready or doesn't exist")
 
     def __del__(self):
-        if self.reader_thread and self.reader_thread.isRunning():
-            self.reader_thread.terminate()
-
+        try:
+            if self.reader_thread and self.reader_thread.isRunning():
+                self.reader_thread.terminate()
+        except:
+            pass
         if self.channel:
             self.channel.close()
 

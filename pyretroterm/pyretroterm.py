@@ -11,9 +11,10 @@ from pathlib import Path
 
 import yaml
 
+from pyretroterm.widgets.qtssh_widget import Ui_Terminal
 from pyretroterm.widgets.session_navigator import SessionNavigator
 
-from pyretroterm.themes2 import ThemeLibrary, LayeredHUDFrame, THEME_MAPPING
+from pyretroterm.themes3 import ThemeLibrary, LayeredHUDFrame, ThemeMapper
 
 from PyQt6.QtGui import QPalette, QColor
 from PyQt6.QtWidgets import QApplication, QMainWindow, QSplitter, QWidget, QHBoxLayout, QVBoxLayout, QMessageBox, \
@@ -33,7 +34,7 @@ logging.basicConfig(level=logging.INFO,
                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger('pyretroterm')
 
-
+THEME_MAPPING = None
 def initialize_sessions():
     sessions_dir = Path('./sessions')
     sessions_dir.mkdir(exist_ok=True)
@@ -64,14 +65,14 @@ def initialize_sessions():
                 print(fh.read())
 
     return sessions_file
-class FastAPIServer(QThread):
-    def __init__(self, app, port: int):
-        super().__init__()
-        self.app = app
-        self.port = port
-
-    def run(self):
-        pass
+# class FastAPIServer(QThread):
+#     def __init__(self, app, port: int):
+#         super().__init__()
+#         self.app = app
+#         self.port = port
+#
+#     def run(self):
+#         pass
 
 
 class pyRetroTermWindow(QMainWindow):
@@ -79,7 +80,7 @@ class pyRetroTermWindow(QMainWindow):
 
     def __init__(self, theme: str = "cyberpunk", session_file: str = "sessions.yaml"):
         super().__init__()
-        self.server_thread: Optional[FastAPIServer] = None
+        # self.server_thread: Optional[FastAPIServer] = None
         self.port = self.find_free_port()
         self.theme = theme
         self.theme_manager = ThemeLibrary()
@@ -343,7 +344,7 @@ class pyRetroTermWindow(QMainWindow):
         telemetry_layout = QVBoxLayout()
         self.telemetry_frame.content_layout.addLayout(telemetry_layout)
         # telemetry_layout.addWidget(self.telemetry)
-        self.main_splitter.addWidget(self.telemetry_frame)
+        # self.main_splitter.addWidget(self.telemetry_frame)
 
         # Set initial telemetry visibility from settings
         telemetry_visible = self.settings_manager.get_view_setting('telemetry_visible', True)
@@ -355,8 +356,38 @@ class pyRetroTermWindow(QMainWindow):
         setup_menus(self)
 
 
+    # def switch_theme(self, theme_name: str):
+    #     """Override switch_theme to save the preference."""
+    #     self.theme = theme_name
+    #     self.theme_manager.apply_theme(self, theme_name)
+    #
+    #     # Save the theme preference
+    #     self.settings_manager.set_app_theme(theme_name)
+    #
+    #     # Update all frames
+    #     self.main_frame.set_theme(theme_name)
+    #     for frame in self.findChildren(LayeredHUDFrame):
+    #         frame.set_theme(theme_name)
+    #
+    #     # Update session navigator
+    #     self.session_navigator.update_theme(theme_name)
+    #
+    #     # Update terminal tabs with mapped theme name
+    #     THEME_MAPPING = ThemeMapper(self.theme_manager)
+    #
+    #     mapped_theme = THEME_MAPPING.get(theme_name, "Cyberpunk")  # Default to Cyberpunk if no mapping
+    #     self.terminal_tabs.update_theme(mapped_theme)
+    #
+    #
+    #     # Update the application palette based on theme
+    #     if theme_name in ['light_mode']:
+    #         self.apply_light_palette()
+    #     else:
+    #         self.apply_dark_palette()
+
     def switch_theme(self, theme_name: str):
-        """Override switch_theme to save the preference."""
+        """Override switch_theme to handle both UI and terminal theming."""
+        # Update main theme
         self.theme = theme_name
         self.theme_manager.apply_theme(self, theme_name)
 
@@ -371,16 +402,28 @@ class pyRetroTermWindow(QMainWindow):
         # Update session navigator
         self.session_navigator.update_theme(theme_name)
 
-        # Update terminal tabs with mapped theme name
-        mapped_theme = THEME_MAPPING.get(theme_name, "Cyberpunk")  # Default to Cyberpunk if no mapping
-        self.terminal_tabs.update_theme(mapped_theme)
-
+        # Update terminal tabs with the actual theme name
+        self.terminal_tabs.update_theme(theme_name)
 
         # Update the application palette based on theme
         if theme_name in ['light_mode']:
             self.apply_light_palette()
         else:
             self.apply_dark_palette()
+
+    # In TerminalTabWidget:
+    def update_theme(self, theme_name: str):
+        """Update terminal themes."""
+        self.current_term_theme = theme_name
+
+        # Update all terminal instances
+        for i in range(self.count()):
+            tab = self.widget(i)
+            if tab:
+                terminal = tab.findChild(Ui_Terminal)
+                if terminal:
+                    # Use the theme manager directly
+                    self.parent.theme_manager.apply_theme_to_terminal(terminal, theme_name)
     def handle_session_connect(self, connection_data):
         """Handle connection request."""
         logger.info(f"Connecting to: {connection_data['host']}:{connection_data['port']}")
@@ -468,10 +511,10 @@ class pyRetroTermWindow(QMainWindow):
             self.terminal_tabs.cleanup_all()
 
         # Shut down server
-        if self.server_thread and self.server_thread.isRunning():
-            logger.info("Shutting down server...")
-            self.server_thread.terminate()
-            self.server_thread.wait()
+        # if self.server_thread and self.server_thread.isRunning():
+        #     logger.info("Shutting down server...")
+        #     self.server_thread.terminate()
+        #     self.server_thread.wait()
         event.accept()
 
 

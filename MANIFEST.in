@@ -1,4 +1,30 @@
 include requirements.txt
 include LICENSE
+include README.md
+include prt_icon.ico
+include theme_settings.json
+
+# PyRetroTerm core files
 recursive-include pyretroterm/static *
 recursive-include pyretroterm/templates *
+recursive-include pyretroterm/widgets *
+recursive-include pyretroterm/ssh *
+recursive-include pyretroterm/helpers *
+recursive-include pyretroterm/routers *
+
+# Theme files
+recursive-include themes *.json
+
+# Termtel module files
+recursive-include termtel/frontend *
+recursive-include termtel/frontend/assets *
+recursive-include termtel/backend *
+recursive-include termtel/backend/output_debug *
+
+# Exclude unnecessary files
+global-exclude *.pyc
+global-exclude __pycache__
+global-exclude *.pyo
+global-exclude .git*
+global-exclude .DS_Store
+global-exclude *.log

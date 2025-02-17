@@ -2,14 +2,16 @@
 Termtel - UI Setup Module
 Handles menu system and dialog setup
 """
+import sys
+
 import yaml
-from PyQt6.QtGui import QActionGroup, QAction
+from PyQt6.QtGui import QActionGroup, QAction, QDesktopServices
 from PyQt6.QtWidgets import (
     QMenuBar, QMenu, QFileDialog, QDialog,
-    QVBoxLayout, QLabel, QWidget, QGroupBox, QPushButton
+    QVBoxLayout, QLabel, QWidget, QGroupBox, QPushButton, QMessageBox
 )
 from PyQt6.QtWebEngineWidgets import QWebEngineView
-from PyQt6.QtCore import QUrl, Qt
+from PyQt6.QtCore import QUrl, Qt, QProcess, QProcessEnvironment
 import logging
 import os
 
@@ -72,16 +74,16 @@ class AboutDialog(QDialog):
                     margin-bottom: 10px;
                 }}
                 h2 {{
-                    color: {highlight_color};
+                    color: {text_color};
                     margin-top: 25px;
                 }}
                 h3 {{
-                    color: {highlight_color};
+                    color: {text_color};
                     margin-top: 20px;
                     font-size: 1.2em;
                 }}
                 .subtitle {{
-                    color: {highlight_color};
+                    color: {text_color};
                     text-align: center;
                     font-size: 1.1em;
                     margin-bottom: 30px;
@@ -97,7 +99,7 @@ class AboutDialog(QDialog):
                 }}
                 .feature-list li:before {{
                     content: "✓";
-                    color: {highlight_color};
+                    color: {text_color};
                     position: absolute;
                     left: 0;
                 }}
@@ -115,7 +117,7 @@ class AboutDialog(QDialog):
         </head>
         <body>
             <div class="container">
-                <h1>pyRetro</h1>
+                <h1>pyRetroTerm</h1>
                 <div class="subtitle">A minimalist, retro-inspired terminal emulator with modern features</div>
 
                 <h2>Key Features</h2>
@@ -128,7 +130,18 @@ class AboutDialog(QDialog):
                         <li>Secure credential storage</li>
                     </ul>
 
-                    
+                     <h3>Theme System</h3>
+                    <ul>
+                        <li>Dynamic JSON-based themes</li>
+                        <li>Live theme preview and hot-reload</li>
+                        <li>Custom theme creation support</li>
+                    </ul>
+                    <div class="code">
+                    To install themes:
+                    1. Download themes.zip from View > Theme > Download Themes
+                    2. Extract to 'themes' directory
+                    3. Click View > Theme > Reload Themes
+                    </div>
 
                     <h3>Security Features</h3>
                     <ul>
@@ -197,10 +210,8 @@ def setup_menus(window):
 
     # File Menu
     file_menu = menubar.addMenu("&File")
-
     open_action = file_menu.addAction("&Open Sessions...")
     open_action.triggered.connect(lambda: handle_open_sessions(window))
-
     file_menu.addSeparator()
     exit_action = file_menu.addAction("E&xit")
     exit_action.triggered.connect(window.close)
@@ -208,21 +219,19 @@ def setup_menus(window):
     # View Menu
     view_menu = menubar.addMenu("&View")
 
+    # Create Themes submenu with dynamic theme loading
     themes_menu = view_menu.addMenu("Theme")
     theme_group = QActionGroup(window)
     theme_group.setExclusive(True)
 
-    available_themes = [
-        'cyberpunk',
-        'dark_mode',
-        'light_mode',
-        'retro_green',
-        'retro_amber',
-        'neon_blue'
-    ]
+    # Get available themes from ThemeLibrary
+    available_themes = window.theme_manager.get_theme_names()
+
     # Create theme actions
     for theme_name in available_themes:
+        # Convert theme name to display name (e.g., "dark_mode" -> "Dark Mode")
         display_name = theme_name.replace('_', ' ').title()
+
         theme_action = QAction(display_name, window)
         theme_action.setCheckable(True)
         theme_action.setChecked(theme_name == window.theme)
@@ -232,18 +241,31 @@ def setup_menus(window):
         theme_group.addAction(theme_action)
         themes_menu.addAction(theme_action)
 
+    # Add theme reload action
+    themes_menu.addSeparator()
+    reload_themes = themes_menu.addAction("Reload Themes")
+    reload_themes.triggered.connect(lambda: reload_theme_menu(window, themes_menu, theme_group))
+    download_themes = themes_menu.addAction("Download Themes")
+    download_themes.triggered.connect(
+        lambda: QDesktopServices.openUrl(
+            QUrl("https://raw.githubusercontent.com/scottpeterman/pyretroterm/main/themes.zip")
+        )
+    )
     credentials_action = view_menu.addAction("&Credentials")
     credentials_action.triggered.connect(lambda: show_credentials_dialog(window))
-
-
 
     # Tools Menu
     tools_menu = menubar.addMenu("&Tools")
 
     netbox_action = tools_menu.addAction("&Netbox Import")
     netbox_action.triggered.connect(lambda: show_netbox_importer(window))
+
     lm_action = tools_menu.addAction("&LogicMonitor Import")
     lm_action.triggered.connect(lambda: show_logicmonitor_importer(window))
+
+    telemetry_action = tools_menu.addAction('Telemetry')
+    telemetry_action.triggered.connect(lambda: launch_telemetry(window))
+
     manage_sessions_action = tools_menu.addAction('Manage Sessions')
     manage_sessions_action.triggered.connect(lambda: show_session_manager(window))
 
@@ -259,9 +281,15 @@ def setup_menus(window):
     notepad_action.triggered.connect(
         lambda: window.terminal_tabs.create_text_editor_tab("Notepad")
     )
+
     space_debris = distractions_menu.addAction("Space Debris")
     space_debris.triggered.connect(
         lambda: window.terminal_tabs.create_game_tab("Space Debris")
+    )
+
+    doom_action = distractions_menu.addAction("Doom")
+    doom_action.triggered.connect(
+        lambda: window.terminal_tabs.create_doom_tab("Doom")
     )
 
     # Help Menu
@@ -269,6 +297,29 @@ def setup_menus(window):
 
     about_action = help_menu.addAction("&About")
     about_action.triggered.connect(lambda: show_about_dialog(window))
+
+def reload_theme_menu(window, themes_menu, theme_group):
+    """Reload the themes menu with current themes from ThemeLibrary"""
+    # Clear existing theme actions
+    for action in theme_group.actions():
+        themes_menu.removeAction(action)
+        theme_group.removeAction(action)
+
+    # Reload themes from library
+    window.theme_manager._load_custom_themes()
+
+    # Add new theme actions
+    available_themes = window.theme_manager.get_theme_names()
+    for theme_name in available_themes:
+        display_name = theme_name.replace('_', ' ').title()
+        theme_action = QAction(display_name, window)
+        theme_action.setCheckable(True)
+        theme_action.setChecked(theme_name == window.theme)
+        theme_action.triggered.connect(
+            lambda checked, t=theme_name: window.switch_theme(t)
+        )
+        theme_group.addAction(theme_action)
+        themes_menu.insertAction(themes_menu.actions()[-2], theme_action)  # Insert before separator
 
 # Remove TelemetryDialog and show_telemetry_dialog since they're not needed anymore
 def toggle_telemetry(window, telemetry_action):
@@ -355,3 +406,94 @@ def show_logicmonitor_importer(window):
         window.lmdialog.show()
     except Exception as e:
         logger.error(f"Error showing LogicMonitor importer: {e}")
+
+
+def launch_telemetry(window):
+    """
+    Launch the telemetry backend using the current Python interpreter.
+    Handles process management and error cases.
+
+    Args:
+        window: The main application window instance
+    """
+    try:
+        # Create a QProcess instance
+        process = QProcess(window)
+
+        # Set up environment
+        env = QProcessEnvironment.systemEnvironment()
+        process.setProcessEnvironment(env)
+
+        # Set up the command and arguments
+        python_path = sys.executable
+        args = ['-m', 'termtel.backend.launcher']
+
+        # Optional: Log the command being executed
+        print(f"Launching telemetry with: {python_path} {' '.join(args)}")
+
+        # Connect signals for monitoring
+        process.errorOccurred.connect(lambda error: _handle_error(window, error))
+        process.finished.connect(lambda code, status: _handle_finish(window, code, status))
+        process.readyReadStandardError.connect(lambda: _handle_stderr(process))
+        process.readyReadStandardOutput.connect(lambda: _handle_stdout(process))
+
+        # Start the process
+        process.start(python_path, args)
+
+        # Store process reference if needed later
+        window.telemetry_process = process
+
+    except Exception as e:
+        QMessageBox.critical(
+            window,
+            "Telemetry Launch Error",
+            f"Failed to start telemetry process: {str(e)}"
+        )
+
+
+def _handle_error(window, error):
+    """Handle QProcess errors"""
+    error_messages = {
+        QProcess.ProcessError.FailedToStart: "The process failed to start",
+        QProcess.ProcessError.Crashed: "The process crashed",
+        QProcess.ProcessError.Timedout: "The process timed out",
+        QProcess.ProcessError.WriteError: "Write error occurred",
+        QProcess.ProcessError.ReadError: "Read error occurred",
+        QProcess.ProcessError.UnknownError: "Unknown error occurred"
+    }
+
+    error_msg = error_messages.get(error, "An unknown error occurred")
+    # QMessageBox.critical(
+    #     window,
+    #     "Telemetry Error",
+    #     f"Telemetry process error: {error_msg}"
+    # )
+
+
+def _handle_finish(window, exit_code, exit_status):
+    """Handle process completion"""
+    pass
+    # if exit_code != 0:
+    #     QMessageBox.warning(
+    #         window,
+    #         "Telemetry Warning",
+    #         f"Telemetry process exited with code {exit_code}"
+    #     )
+
+    # Clean up process reference
+    if hasattr(window, 'telemetry_process'):
+        delattr(window, 'telemetry_process')
+
+
+def _handle_stdout(process):
+    """Handle process standard output"""
+    data = process.readAllStandardOutput()
+    stdout = bytes(data).decode('utf8')
+    print(f"Telemetry stdout: {stdout}")
+
+
+def _handle_stderr(process):
+    """Handle process standard error"""
+    data = process.readAllStandardError()
+    stderr = bytes(data).decode('utf8')
+    print(f"Telemetry stderr: {stderr}")

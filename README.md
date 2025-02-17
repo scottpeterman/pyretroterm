@@ -34,7 +34,7 @@ A modern terminal emulator built with PyQt6, featuring dynamic themes, real-time
 - Full SSH terminal emulation
 - Secure credential management with encryption
 - Multiple device type support (Linux, Cisco IOS, Arista EOS, etc.)
-- Command history and session persistence
+- Sessions organization and persistence
 - Customizable text rendering and display options
 - Zoom controls for accessibility
 
@@ -54,14 +54,11 @@ A modern terminal emulator built with PyQt6, featuring dynamic themes, real-time
 ### Integration Capabilities
 
 #### Netbox Integration
-- Automatic device discovery from Netbox inventory
-- Site-based organization of devices
-- Secure token-based authentication
-- Bulk export of device configurations
+
+- Bulk export of device configurations, organizing folders by site
 - Preserves device metadata (model, serial, vendor info)
 - SSL verification options for internal deployments
 - Progress tracking for large deployments
-- Settings persistence for quick re-runs
 
 #### LogicMonitor Integration
 - Automated device import from LogicMonitor monitoring platform
@@ -71,7 +68,7 @@ A modern terminal emulator built with PyQt6, featuring dynamic themes, real-time
 - Intelligent property mapping (model, serial, version)
 - Progress tracking and status updates
 - Configurable batch processing
-- Persistent configuration storage
+- Persistence to YAML file for sessions use
 
 #### Additional Integration Features
 - Portable session management with YAML configuration
@@ -109,10 +106,21 @@ pyretroterm
 pyretroterm-con
 ```
 
-3. On first launch:
+3. Install theme pack (optional but recommended):
+   ```bash
+   # Create themes directory in your installation
+   mkdir themes
+   
+   # Download and extract theme pack
+   curl -LO https://raw.githubusercontent.com/scottpeterman/pyretroterm/main/themes.zip
+   unzip themes.zip -d themes/
+   ```
+   
+4. On first launch:
    - Set up a master password for credential management
    - Configure your session settings
    - Choose your preferred theme from the expanded theme collection
+   - If themes don't appear, ensure theme JSON files are in the 'themes' directory
 
 ## Interface Overview
 
@@ -154,7 +162,7 @@ Each theme provides consistent styling across all panels and includes:
 ### Telemetry Support
 Each platform supports different levels of telemetry collection:
 
-#### Full Telemetry Support
+#### Full SSH Based Telemetry Support
 - Interface status monitoring
 - CPU and memory statistics
 - Environmental monitoring (temperature, power, fans)
@@ -263,12 +271,20 @@ Sessions are configured via YAML files. Example configuration:
 ```
 
 ### Custom Themes
-Themes are now defined in JSON files for easy customization:
+Themes are defined in JSON files for easy customization and can be installed from the themes pack:
 
-1. Create a new JSON file in the themes directory
-2. Define your colors and styles
-3. The theme will be automatically detected and available in the themes menu
-4. Reload themes without restarting the application
+1. Download the official theme pack:
+   ```bash
+   curl -LO https://raw.githubusercontent.com/scottpeterman/pyretroterm/main/themes.zip
+   ```
+
+2. Extract to your themes directory:
+   ```bash
+   unzip themes.zip -d themes/
+   ```
+3. Themes folder is scanned at startup (or via UI) and dynamically loaded
+
+4. Create new themes by adding JSON files to the themes directory
 
 Example theme structure:
 ```json
@@ -285,43 +301,7 @@ Example theme structure:
 ```
 
 ## Security Features
+- Protection of stored secrets
 - PBKDF2-HMAC-SHA256 key derivation (480,000 iterations)
 - Fernet (AES-128-CBC) encryption with HMAC authentication
-- Platform-specific secure storage locations
-- Machine-specific binding
-- Rate-limited authentication
-- Cross-platform secure credential management
-- Zero plaintext storage of sensitive data
-
-## Requirements
-- Python 3.12 or higher
-- PyQt6
-- Additional dependencies listed in requirements.txt
-
-## Advanced Features
-
-### Telemetry Support
-The new telemetry system provides real-time monitoring:
-- Device statistics and health metrics
-- Interface status and performance
-- Environmental data
-- Neighbor discovery
-- Real-time updates
-
-### Plugin System
-Extend functionality through plugins:
-- Device integration plugins
-- Custom telemetry collectors
-- Theme extensions
-- Additional protocol support
-
-## License
-This project is licensed under the GNU General Public License v3 (GPLv3) - see the [LICENSE](LICENSE) file for details.
-
-## Author
-Scott Peterman (scottpeterman@gmail.com)
-
-## Acknowledgments
-- Thanks to the PyQt6 team for the excellent GUI framework
-- Contributors to the theme collection
-- Netbox and LogicMonitor teams for their APIs
+- Platform-specific secure

@@ -1,7 +1,8 @@
 import socket
+from pathlib import Path
 
 import yaml
-from fastapi import Path
+# from fastapi import Path
 
 from pyretroterm.routers.workspace import create_workspace_for_user
 

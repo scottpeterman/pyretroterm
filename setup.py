@@ -9,7 +9,7 @@ with open("requirements.txt") as f:
 
 setup(
     name="pyRetroTerm",
-    version="0.2.0",
+    version="0.2.1",
     author="Scott Peterman",
     author_email="scottpeterman@gmail.com",
     description="pyRetroTerm - A PyQt6 Terminal Emulator with Real-time Telemetry and Retro Themes",
@@ -52,5 +52,5 @@ setup(
             'termtel=termtel.backend.launcher:main',
         ],
     },
-    python_requires=">=3.8",
+    python_requires=">=3.9",
 )

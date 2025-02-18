@@ -25,9 +25,10 @@ class AsteroidsWidget(QWidget):
         super().__init__(parent)
 
         if "light" not in parent.theme:
-            self.game_color = color
+            self.game_color = self.ensure_visible_on_black(color)
         else:
-            self.game_color = Qt.GlobalColor.white
+            self.game_color = color
+
         self.parent=parent
         self.initUI()
 
@@ -45,6 +46,41 @@ class AsteroidsWidget(QWidget):
         self.gameView.livesChanged.connect(self.livesChanged)
         self.gameView.levelChanged.connect(self.levelChanged)
         self.gameView.gameStateChanged.connect(self.gameStateChanged)
+
+    def ensure_visible_on_black(self, color):
+        """
+        Ensures a color will be visible on a black background by checking its luminance
+        and adjusting if necessary.
+
+        Args:
+            color: QColor or Qt.GlobalColor to check
+
+        Returns:
+            QColor that is guaranteed to be visible on black
+        """
+        # Convert to QColor if it's a Qt.GlobalColor
+        if not isinstance(color, QColor):
+            color = QColor(color)
+
+        # Calculate relative luminance using standard coefficients
+        luminance = (0.299 * color.red() +
+                     0.587 * color.green() +
+                     0.114 * color.blue()) / 255.0
+
+        # If luminance is too low (color too dark), adjust it
+        MIN_LUMINANCE = 0.4  # Minimum luminance for visibility
+
+        if luminance < MIN_LUMINANCE:
+            # Preserve the hue but adjust saturation and value
+            h = color.hue()
+            s = min(color.saturation(), 200)  # Reduce saturation if very dark
+            v = max(color.value(), int(MIN_LUMINANCE * 255))  # Increase brightness
+
+            adjusted_color = QColor()
+            adjusted_color.setHsv(h, s, v)
+            return adjusted_color
+
+        return color
 
     def keyPressEvent(self, event):
         self.gameView.keyPressEvent(event)
@@ -84,8 +120,11 @@ class AsteroidsWidget(QWidget):
 
     def setColor(self, color):
         """Update the game color during runtime"""
-        self.game_color = color
-        self.gameView.setColor(color)
+        if "light" not in self.parent.theme:
+            self.game_color = self.ensure_visible_on_black(color)
+        else:
+            self.game_color = color
+        self.gameView.setColor(self.game_color)
 
 
 class GameView(QGraphicsView):
